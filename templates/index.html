@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Flask Tutorial - Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to the Flask Tutorial App</h1>
+        <p>This is a simple Flask application designed for students to learn web development basics.</p>
+
+        <h2>Your Notes</h2>
+        {% if notes %}
+            <ul>
+                {% for note in notes %}
+                    <li>{{ note }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No notes yet. <a href="{{ url_for('add_note') }}">Add your first note!</a></p>
+        {% endif %}
+
+        <p><a href="{{ url_for('clear_notes') }}">Clear all notes</a></p>
+    </div>
+</body>
+</html>
