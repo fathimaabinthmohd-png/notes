@@ -2,8 +2,8 @@
 
 This tutorial guides you through creating a simple web application using Flask, a lightweight Python web framework.
 
-## Learning Objectives
-
+## Objecives of this tutorial
+ 
 By the end of this tutorial, you will be able to:
 - Set up a Flask development environment
 - Create routes and view functions
