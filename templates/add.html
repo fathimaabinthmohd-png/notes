@@ -10,44 +10,45 @@
         <h1>{% if edit %}Edit Note{% else %}Add a New Note{% endif %}</h1>
         <form id="noteForm" method="POST" action="{% if edit %}{{ url_for('edit_note', note_id=note.id) }}{% else %}{{ url_for('add_note') }}{% endif %}">
             <label for="heading">Heading (optional):</label><br>
-            <input id="heading" name="heading" value="{% if note %}{{ note.heading }}{% endif %}" placeholder="Enter heading"><br><br>
+            <input id="heading" name="heading" value="{% if note %}{{ note.heading }}{% endif %}" placeholder="Enter heading" class="text-input"><br><br>
 
-            <label for="newLine">Add line (press Enter to add):</label><br>
-            <input id="newLine" type="text" placeholder="Type a line and press Enter">
-            <label style="margin-left:8px"><input id="newPoint" type="checkbox"> Small point</label>
+            <label for="pendingLines">Write note lines here:</label><br>
+            <textarea id="pendingLines" class="text-input" rows="4" placeholder="Type multiple lines here. Use Shift+Enter to create a new line inside the note, then click Add lines."></textarea>
+            <div class="line-actions-row">
+                <label class="checkbox-label"><input id="newPoint" type="checkbox"> Small point</label>
+                <button type="button" id="addLinesBtn" class="btn btn-secondary">Add lines</button>
+            </div>
 
-            <ul id="linesList" class="note-list" style="margin-top:12px"></ul>
+            <ul id="linesList" class="note-list"></ul>
 
-            <div style="margin-top:12px">
+            <div class="form-actions">
                 <input type="submit" value="{% if edit %}Save Changes{% else %}Add Note{% endif %}" class="btn">
-                <a href="{{ url_for('index') }}" style="margin-left:10px">Back to home</a>
+                <a href="{{ url_for('index') }}" class="link-button">Back to home</a>
             </div>
         </form>
     </div>
 
     <script>
     // Manage lines in the client and submit them as hidden inputs named lines[] and points[]
-    const newLine = document.getElementById('newLine');
+    const pendingLines = document.getElementById('pendingLines');
     const newPoint = document.getElementById('newPoint');
     const linesList = document.getElementById('linesList');
     const form = document.getElementById('noteForm');
 
     function addLineToList(text, is_point=false, lineId=null){
         const li = document.createElement('li');
-        li.className = 'note-item';
+        li.className = 'note-item note-line-item';
         li.dataset.content = text;
+        li.dataset.isPoint = is_point ? 'true' : 'false';
         if(lineId) li.dataset.lineId = lineId;
 
-        const left = document.createElement('div');
-        left.className = 'note-left';
-        left.textContent = new Date().toLocaleString();
-        left.style.fontSize = '0.8rem';
-        left.style.color = '#9ca3af';
-        left.style.marginRight = '10px';
+        const timeLabel = document.createElement('div');
+        timeLabel.className = 'line-time';
+        timeLabel.textContent = new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit', hour12:true});
 
         const content = document.createElement('div');
-        content.className = 'note-content';
-        content.textContent = (is_point? '• ' : '') + text;
+        content.className = 'line-display';
+        content.textContent = (is_point ? '• ' : '') + text;
 
         const actions = document.createElement('div');
         actions.className = 'note-actions';
@@ -55,49 +56,61 @@
         const editBtn = document.createElement('button');
         editBtn.type = 'button';
         editBtn.textContent = 'Edit';
-        editBtn.className = 'btn';
+        editBtn.className = 'btn btn-secondary';
         editBtn.onclick = () => {
-            newLine.value = text;
-            newPoint.checked = is_point;
-            // remove current item so user can press Enter to re-add
+            pendingLines.value = text;
+            newPoint.checked = li.dataset.isPoint === 'true';
             li.remove();
         };
 
         const delBtn = document.createElement('button');
         delBtn.type = 'button';
         delBtn.textContent = 'Remove';
+        delBtn.className = 'btn btn-secondary';
         delBtn.onclick = () => li.remove();
 
-        const pointChk = document.createElement('input');
-        pointChk.type = 'checkbox';
-        pointChk.checked = is_point;
-        pointChk.style.marginLeft = '8px';
+        const pointToggle = document.createElement('button');
+        pointToggle.type = 'button';
+        pointToggle.textContent = is_point ? 'Point' : 'Plain';
+        pointToggle.className = 'btn btn-secondary';
+        pointToggle.onclick = () => {
+            const nowPoint = li.dataset.isPoint !== 'true';
+            li.dataset.isPoint = nowPoint ? 'true' : 'false';
+            content.textContent = (nowPoint ? '• ' : '') + text;
+            pointToggle.textContent = nowPoint ? 'Point' : 'Plain';
+        };
 
         actions.appendChild(editBtn);
         actions.appendChild(delBtn);
-        actions.appendChild(pointChk);
+        actions.appendChild(pointToggle);
 
-        const row = document.createElement('div');
-        row.style.display = 'flex';
-        row.style.alignItems = 'center';
-        row.appendChild(left);
-        row.appendChild(content);
-        row.appendChild(actions);
+        const lineRow = document.createElement('div');
+        lineRow.className = 'note-line-row';
+        lineRow.appendChild(timeLabel);
+        lineRow.appendChild(content);
+        lineRow.appendChild(actions);
 
-        li.appendChild(row);
+        li.appendChild(lineRow);
         linesList.appendChild(li);
     }
 
-    newLine.addEventListener('keydown', function(e){
-        if(e.key === 'Enter'){
+    pendingLines.addEventListener('keydown', function(e){
+        if(e.key === 'Enter' && !e.shiftKey){
             e.preventDefault();
-            const text = newLine.value.trim();
-            if(!text) return;
-            addLineToList(text, newPoint.checked);
-            newLine.value = '';
-            newPoint.checked = false;
+            addPendingLines();
         }
     });
+
+    document.getElementById('addLinesBtn').addEventListener('click', addPendingLines);
+
+    function addPendingLines(){
+        const rawText = pendingLines.value.trim();
+        if(!rawText) return;
+        const lines = rawText.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+        lines.forEach(line => addLineToList(line, newPoint.checked));
+        pendingLines.value = '';
+        newPoint.checked = false;
+    }
 
     form.addEventListener('submit', function(e){
         // remove existing hidden inputs
@@ -106,8 +119,8 @@
         // create hidden inputs for each line
         const items = Array.from(linesList.querySelectorAll('li'));
         items.forEach((li, idx)=>{
-            const text = li.dataset.content || li.querySelector('.note-content').textContent.replace(/^•\s*/,'');
-            const isPoint = li.querySelector('input[type="checkbox"]')?.checked ? 'on' : '';
+            const text = li.dataset.content || li.querySelector('.line-display').textContent.replace(/^•\s*/, '');
+            const isPoint = li.dataset.isPoint === 'true' ? 'on' : '';
             const hi = document.createElement('input');
             hi.type = 'hidden';
             hi.name = 'lines[]';

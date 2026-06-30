@@ -30,7 +30,7 @@
                         <div class="note-lines">
                             {% for line in note.lines %}
                                 <div class="note-item-line">
-                                    <div class="line-time">{{ line.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                                    <div class="line-time">{{ line.created_at.strftime('%I:%M %p')|lstrip('0') }}</div>
                                     <div class="line-content">{% if line.is_point %}• {% endif %}{{ line.content }}</div>
                                 </div>
                             {% endfor %}
