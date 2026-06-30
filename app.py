@@ -28,6 +28,14 @@ def add_note():
     # GET request: show the form
     return render_template('add.html')
 
+@app.route('/delete/<int:note_id>', methods=['POST'])
+def delete_note(note_id):
+    """Delete a single note by its index."""
+    global notes
+    if 0 <= note_id < len(notes):
+        notes.pop(note_id)
+    return redirect(url_for('index'))
+
 @app.route('/clear')
 def clear_notes():
     """Clear all notes."""
