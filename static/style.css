@@ -140,49 +140,28 @@ a:hover {
     flex-wrap: wrap;
 }
 .note-lines {
-    display: grid;
-    gap: 12px;
+    margin-top: 12px;
 }
-.note-item-line {
-    display: grid;
-    grid-template-columns: 76px 1fr;
-    gap: 16px;
-    align-items: center;
-    padding: 18px;
-    border-radius: 18px;
-    border: 1px solid #e5e7eb;
-    background: #ffffff;
-}
-.line-time {
+.note-paragraph {
     color: var(--text-secondary);
-    font-size: 0.82rem;
-    min-width: 76px;
-}
-.line-content {
-    color: var(--text-primary);
     font-size: 1rem;
-    line-height: 1.75;
+    line-height: 1.8;
 }
-.note-line-item {
-    padding: 18px;
-}
-.note-line-row {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    gap: 14px;
-}
-.line-display {
-    word-break: break-word;
+.bullet {
     color: var(--text-primary);
+    font-weight: 700;
+    margin-right: 6px;
+}
+.note-body-text {
+    color: var(--text-primary);
+}
+.paragraph-separator {
+    display: inline-block;
+    margin: 0 4px;
 }
 @media (max-width: 720px) {
-    .note-row,
-    .note-line-row,
-    .note-item-line {
-        grid-template-columns: 1fr;
-    }
-    .line-time {
-        min-width: auto;
+    .note-row {
+        flex-direction: column;
+        gap: 12px;
     }
 }

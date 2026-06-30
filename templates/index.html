@@ -27,13 +27,16 @@
                                 </form>
                             </div>
                         </div>
-                        <div class="note-lines">
-                            {% for line in note.lines %}
-                                <div class="note-item-line">
-                                    <div class="line-time">{{ line.created_at.strftime('%I:%M %p').replace(' 0', ' ') }}</div>
-                                    <div class="line-content">{% if line.is_point %}• {% endif %}{{ line.content }}</div>
-                                </div>
-                            {% endfor %}
+                        <div class="note-body">
+                            <div class="note-paragraph">
+                                {% for line in note.lines %}
+                                    {% if line.is_point %}
+                                        <span class="bullet">•</span>
+                                    {% endif %}
+                                    <span class="note-body-text">{{ line.content }}</span>
+                                    {% if not loop.last %}<span class="paragraph-separator"> </span>{% endif %}
+                                {% endfor %}
+                            </div>
                         </div>
                     </li>
                 {% endfor %}
