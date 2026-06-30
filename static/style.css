@@ -44,10 +44,16 @@ input[type="submit"]:hover, button:hover{ background:#1d4ed8 }
 .action-link { color:var(--highlight); text-decoration:none }
 .action-link:hover { text-decoration:underline }
 
+.note-heading { font-size:1.1rem; display:block }
+.note-lines { margin-top:10px }
+.note-item-line { display:flex; gap:12px; align-items:flex-start; padding:6px 0; border-bottom:1px dashed rgba(255,255,255,0.03) }
+.line-time { width:160px; color:var(--muted); font-size:0.85rem }
+.line-content { flex:1 }
+
 form.inline { display:inline }
 
 @media (min-width:720px){
-  .note-item{ flex-direction:row; align-items:center }
+  .note-item{ flex-direction:column; align-items:flex-start }
   .note-content{ flex:1 }
   .note-meta{ margin-left:12px }
 }

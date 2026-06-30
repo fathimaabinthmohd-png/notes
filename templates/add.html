@@ -8,12 +8,125 @@
 <body>
     <div class="container">
         <h1>{% if edit %}Edit Note{% else %}Add a New Note{% endif %}</h1>
-        <form method="POST" action="{% if edit %}{{ url_for('edit_note', note_id=note.id) }}{% else %}{{ url_for('add_note') }}{% endif %}">
-            <label for="content">Note content:</label><br>
-            <textarea id="content" name="content" rows="4" cols="50" required>{% if note %}{{ note.content }}{% endif %}</textarea><br><br>
-            <input type="submit" value="{% if edit %}Save Changes{% else %}Add Note{% endif %}">
+        <form id="noteForm" method="POST" action="{% if edit %}{{ url_for('edit_note', note_id=note.id) }}{% else %}{{ url_for('add_note') }}{% endif %}">
+            <label for="heading">Heading (optional):</label><br>
+            <input id="heading" name="heading" value="{% if note %}{{ note.heading }}{% endif %}" placeholder="Enter heading"><br><br>
+
+            <label for="newLine">Add line (press Enter to add):</label><br>
+            <input id="newLine" type="text" placeholder="Type a line and press Enter">
+            <label style="margin-left:8px"><input id="newPoint" type="checkbox"> Small point</label>
+
+            <ul id="linesList" class="note-list" style="margin-top:12px"></ul>
+
+            <div style="margin-top:12px">
+                <input type="submit" value="{% if edit %}Save Changes{% else %}Add Note{% endif %}" class="btn">
+                <a href="{{ url_for('index') }}" style="margin-left:10px">Back to home</a>
+            </div>
         </form>
-        <p><a href="{{ url_for('index') }}">Back to home</a></p>
     </div>
+
+    <script>
+    // Manage lines in the client and submit them as hidden inputs named lines[] and points[]
+    const newLine = document.getElementById('newLine');
+    const newPoint = document.getElementById('newPoint');
+    const linesList = document.getElementById('linesList');
+    const form = document.getElementById('noteForm');
+
+    function addLineToList(text, is_point=false, lineId=null){
+        const li = document.createElement('li');
+        li.className = 'note-item';
+        li.dataset.content = text;
+        if(lineId) li.dataset.lineId = lineId;
+
+        const left = document.createElement('div');
+        left.className = 'note-left';
+        left.textContent = new Date().toLocaleString();
+        left.style.fontSize = '0.8rem';
+        left.style.color = '#9ca3af';
+        left.style.marginRight = '10px';
+
+        const content = document.createElement('div');
+        content.className = 'note-content';
+        content.textContent = (is_point? '• ' : '') + text;
+
+        const actions = document.createElement('div');
+        actions.className = 'note-actions';
+
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.textContent = 'Edit';
+        editBtn.className = 'btn';
+        editBtn.onclick = () => {
+            newLine.value = text;
+            newPoint.checked = is_point;
+            // remove current item so user can press Enter to re-add
+            li.remove();
+        };
+
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.textContent = 'Remove';
+        delBtn.onclick = () => li.remove();
+
+        const pointChk = document.createElement('input');
+        pointChk.type = 'checkbox';
+        pointChk.checked = is_point;
+        pointChk.style.marginLeft = '8px';
+
+        actions.appendChild(editBtn);
+        actions.appendChild(delBtn);
+        actions.appendChild(pointChk);
+
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.alignItems = 'center';
+        row.appendChild(left);
+        row.appendChild(content);
+        row.appendChild(actions);
+
+        li.appendChild(row);
+        linesList.appendChild(li);
+    }
+
+    newLine.addEventListener('keydown', function(e){
+        if(e.key === 'Enter'){
+            e.preventDefault();
+            const text = newLine.value.trim();
+            if(!text) return;
+            addLineToList(text, newPoint.checked);
+            newLine.value = '';
+            newPoint.checked = false;
+        }
+    });
+
+    form.addEventListener('submit', function(e){
+        // remove existing hidden inputs
+        Array.from(document.querySelectorAll('input[name="lines[]"]')).forEach(n=>n.remove());
+        Array.from(document.querySelectorAll('input[name="points[]"]')).forEach(n=>n.remove());
+        // create hidden inputs for each line
+        const items = Array.from(linesList.querySelectorAll('li'));
+        items.forEach((li, idx)=>{
+            const text = li.dataset.content || li.querySelector('.note-content').textContent.replace(/^•\s*/,'');
+            const isPoint = li.querySelector('input[type="checkbox"]')?.checked ? 'on' : '';
+            const hi = document.createElement('input');
+            hi.type = 'hidden';
+            hi.name = 'lines[]';
+            hi.value = text;
+            form.appendChild(hi);
+            const hp = document.createElement('input');
+            hp.type = 'hidden';
+            hp.name = 'points[]';
+            hp.value = isPoint;
+            form.appendChild(hp);
+        });
+    });
+
+    // if editing, prepopulate existing lines
+    {% if edit and note and note.lines %}
+        {% for line in note.lines %}
+            addLineToList({{ line.content | tojson }}, {{ 'true' if line.is_point else 'false' }}, {{ line.id }});
+        {% endfor %}
+    {% endif %}
+    </script>
 </body>
 </html>

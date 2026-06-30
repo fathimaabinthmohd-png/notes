@@ -1,6 +1,6 @@
 import unittest
 
-from app import app, db, Note
+from app import app, db, Note, NoteLine
 
 
 class TravelAppTests(unittest.TestCase):
@@ -8,10 +8,9 @@ class TravelAppTests(unittest.TestCase):
         app.testing = True
         self.client = app.test_client()
         with app.app_context():
+            # Recreate schema to match current models
+            db.drop_all()
             db.create_all()
-            # Ensure a clean database
-            Note.query.delete()
-            db.session.commit()
 
     def tearDown(self):
         with app.app_context():
@@ -20,29 +19,36 @@ class TravelAppTests(unittest.TestCase):
 
     def test_edit_note_updates_selected_note(self):
         with app.app_context():
-            n = Note(content="First note")
+            n = Note(heading="Test")
             db.session.add(n)
+            db.session.flush()
+            ln = NoteLine(note_id=n.id, content="First note", position=0)
+            db.session.add(ln)
             db.session.commit()
             note_id = n.id
 
         response = self.client.post(
             f"/edit/{note_id}",
-            data={"content": "Updated note"},
+            data={"lines[]": "Updated note", "heading": "Test"},
             follow_redirects=True,
         )
 
         self.assertEqual(response.status_code, 200)
         with app.app_context():
-            n = Note.query.get(note_id)
-            self.assertIsNotNone(n)
-            self.assertEqual(n.content, "Updated note")
+            lines = NoteLine.query.filter_by(note_id=note_id).all()
+            self.assertEqual(len(lines), 1)
+            self.assertEqual(lines[0].content, "Updated note")
         self.assertIn("Updated note", response.get_data(as_text=True))
 
     def test_delete_note_removes_only_selected_note(self):
         with app.app_context():
-            n1 = Note(content="Keep me")
-            n2 = Note(content="Delete me")
+            n1 = Note(heading="A")
+            n2 = Note(heading="B")
             db.session.add_all([n1, n2])
+            db.session.flush()
+            l1 = NoteLine(note_id=n1.id, content="Keep me", position=0)
+            l2 = NoteLine(note_id=n2.id, content="Delete me", position=0)
+            db.session.add_all([l1, l2])
             db.session.commit()
             id_keep = n1.id
             id_delete = n2.id
@@ -51,9 +57,11 @@ class TravelAppTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         with app.app_context():
-            remaining = Note.query.all()
-            self.assertEqual(len(remaining), 1)
-            self.assertEqual(remaining[0].content, "Keep me")
+            remaining_notes = Note.query.all()
+            self.assertEqual(len(remaining_notes), 1)
+            remaining_lines = NoteLine.query.filter_by(note_id=remaining_notes[0].id).all()
+            self.assertEqual(len(remaining_lines), 1)
+            self.assertEqual(remaining_lines[0].content, "Keep me")
         self.assertNotIn("Delete me", response.get_data(as_text=True))
 
 
