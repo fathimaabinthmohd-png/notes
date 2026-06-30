@@ -12,13 +12,17 @@
 
         <h2>Your Notes</h2>
         {% if notes %}
-            <ul>
+            <ul class="note-list">
                 {% for note in notes %}
-                    <li>
-                        {{ note }}
-                        <form method="POST" action="{{ url_for('delete_note', note_id=loop.index0) }}" style="display:inline; margin-left: 10px;">
-                            <button type="submit">Delete</button>
-                        </form>
+                    <li class="note-item">
+                        <div class="note-content">{{ note.content }}</div>
+                        <div class="note-meta">Added: {{ note.created_at }} | Updated: {{ note.updated_at }}</div>
+                        <div class="note-actions">
+                            <a href="{{ url_for('edit_note', note_id=loop.index0) }}" class="action-link">Edit</a>
+                            <form method="POST" action="{{ url_for('delete_note', note_id=loop.index0) }}">
+                                <button type="submit">Delete</button>
+                            </form>
+                        </div>
                     </li>
                 {% endfor %}
             </ul>

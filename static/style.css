@@ -3,24 +3,25 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 20px;
-    background-color: #fef3c7;
+    background-color: #111827;
+    color: #f9fafb;
 }
 .container {
     max-width: 800px;
     margin: 0 auto;
-    background: white;
+    background: #1f2937;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
 }
 h1 {
-    color: #2c3e50;
+    color: #fbbf24;
 }
 h2 {
-    color: #3498db;
+    color: #93c5fd;
 }
 a {
-    color: #2980b9;
+    color: #60a5fa;
     text-decoration: none;
 }
 a:hover {
@@ -30,17 +31,49 @@ textarea {
     width: 100%;
     padding: 8px;
     margin-top: 5px;
-    border: 1px solid #ccc;
+    border: 1px solid #4b5563;
     border-radius: 4px;
+    background: #374151;
+    color: #f9fafb;
 }
-input[type="submit"] {
-    background-color: #27ae60;
+input[type="submit"], button {
+    background-color: #2563eb;
     color: white;
     border: none;
     padding: 10px 15px;
     cursor: pointer;
     border-radius: 4px;
 }
-input[type="submit"]:hover {
-    background-color: #219150;
+input[type="submit"]:hover, button:hover {
+    background-color: #1d4ed8;
+}
+.note-list {
+    list-style: none;
+    padding: 0;
+}
+.note-item {
+    background: #374151;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+}
+.note-content {
+    font-size: 1.05rem;
+    margin-bottom: 6px;
+}
+.note-meta {
+    font-size: 0.9rem;
+    color: #d1d5db;
+    margin-bottom: 8px;
+}
+.note-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.action-link {
+    color: #fbbf24;
+}
+form {
+    display: inline;
 }
